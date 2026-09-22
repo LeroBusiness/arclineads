@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ArcLine — Pinterest media buying and 1:1 e-commerce coaching</title>
+<meta name="description" content="ArcLine runs Pinterest ads for e-commerce stores that already win on Google and Meta, and coaches beginners and scaling founders one-on-one.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Archivo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14161a; --ink-soft:#2a2e35; --paper:#f7f5f0; --paper-2:#efece5; --line:#dcd7cc;
+    --muted:#5b6470; --faint:#8c93a0; --red:#e0442f; --red-ink:#b7331f; --card:#ffffff;
+    --display:"Bricolage Grotesque", "Archivo", Helvetica, Arial, sans-serif;
+    --body:"Archivo", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  h1,h2,h3{font-family:var(--display);letter-spacing:-.02em;text-wrap:balance;margin:0}
+  h1{font-size:clamp(2.6rem,7vw,5.4rem);font-weight:800;line-height:.98}
+  h2{font-size:clamp(1.9rem,4vw,3rem);font-weight:800;line-height:1.05}
+  h3{font-size:1.25rem;font-weight:800;line-height:1.2}
+  p{margin:0}
+  .wrap{width:min(1120px,100% - 40px);margin-inline:auto}
+  .eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.9rem 1.25rem;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);font-weight:700;text-decoration:none;transition:background .12s ease-out,color .12s ease-out,border-color .12s ease-out}
+  .btn:hover{background:var(--red);border-color:var(--red);color:#fff}
+  .btn.ghost{background:transparent;color:var(--ink)}
+  .btn.ghost:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn:focus-visible,a:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+
+  /* Nav */
+  header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 0}
+  .logo{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-weight:800;font-size:1.15rem;letter-spacing:-.02em;text-decoration:none}
+  .logo svg{width:28px;height:28px}
+  nav.links{display:flex;gap:1.4rem;font-size:.9rem;font-weight:500}
+  nav.links a{text-decoration:none;color:var(--muted)}
+  nav.links a:hover{color:var(--ink)}
+  @media (max-width:720px){nav.links{display:none}}
+
+  /* Hero */
+  .hero{position:relative;overflow:hidden;padding:5.5rem 0 4rem;border-bottom:1px solid var(--line)}
+  .hero .arc{position:absolute;inset:auto -10% -55% auto;width:min(1100px,120vw);height:auto;opacity:.9;pointer-events:none}
+  .hero .grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:3rem;align-items:end}
+  .hero .lede{font-size:1.2rem;color:var(--muted);max-width:34rem;margin-top:1.4rem}
+  .doors{display:grid;gap:14px}
+  .door{position:relative;display:block;padding:1.3rem 1.3rem 1.2rem;background:var(--card);border:1px solid var(--line);text-decoration:none;transition:border-color .12s ease-out}
+  .door:hover{border-color:var(--ink)}
+  .door .eyebrow{color:var(--red)}
+  .door h3{margin:.35rem 0 .4rem}
+  .door p{color:var(--muted);font-size:.98rem}
+  .door .go{position:absolute;right:1.1rem;top:1.15rem;font-weight:700;font-size:1.2rem}
+  @media (max-width:860px){.hero .grid{grid-template-columns:1fr}.hero{padding:3.5rem 0 3rem}}
+
+  section{padding:5rem 0}
+  section+section{border-top:1px solid var(--line)}
+  .sec-head{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:2rem;align-items:start;margin-bottom:2.6rem}
+  .sec-head p{color:var(--muted);font-size:1.05rem;max-width:36rem}
+  @media (max-width:860px){.sec-head{grid-template-columns:1fr;gap:1rem}}
+
+  /* Two columns: agency / coaching */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .panel{background:var(--card);border:1px solid var(--line);padding:1.8rem}
+  .panel.dark{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .panel.dark .eyebrow{color:#c9ccd2}
+  .panel.dark li::before{color:var(--red)}
+  .panel h3{font-size:1.6rem;margin:.4rem 0 .6rem}
+  .panel .who{color:var(--muted);margin-bottom:1.2rem}
+  .panel.dark .who{color:#c9ccd2}
+  ul.check{list-style:none;padding:0;margin:0;display:grid;gap:.55rem}
+  ul.check li{position:relative;padding-left:1.6rem;font-size:.98rem}
+  ul.check li::before{content:"";position:absolute;left:0;top:.55em;width:.7rem;height:.7rem;background:var(--red);clip-path:polygon(0 45%,35% 80%,100% 10%,100% 32%,35% 100%,0 66%)}
+  ul.check li.no::before{background:var(--faint);clip-path:polygon(20% 10%,10% 20%,40% 50%,10% 80%,20% 90%,50% 60%,80% 90%,90% 80%,60% 50%,90% 20%,80% 10%,50% 40%)}
+  .panel .foot{margin-top:1.5rem;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center}
+  .panel .foot small{color:var(--muted);font-size:.85rem}
+  .panel.dark .foot small{color:#c9ccd2}
+  @media (max-width:860px){.split{grid-template-columns:1fr}}
+
+  /* Requirements gate */
+  .gate{background:var(--paper-2);border:1px solid var(--line);padding:1.6rem 1.8rem;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1.5rem;align-items:center;margin-top:14px}
+  .gate p{color:var(--ink-soft)}
+  @media (max-width:720px){.gate{grid-template-columns:1fr}}
+
+  /* Process */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;counter-reset:step}
+  .step{background:var(--card);border:1px solid var(--line);padding:1.4rem}
+  .step::before{counter-increment:step;content:counter(step,decimal-leading-zero);display:block;font-family:var(--display);font-weight:800;font-size:2rem;color:var(--red);line-height:1;margin-bottom:.8rem}
+  .step h3{font-size:1.1rem;margin-bottom:.4rem}
+  .step p{color:var(--muted);font-size:.95rem}
+  @media (max-width:960px){.steps{grid-template-columns:1fr 1fr}}
+  @media (max-width:560px){.steps{grid-template-columns:1fr}}
+
+  /* Coaching */
+  .tracks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .track{border:1px solid var(--line);background:var(--card);padding:1.6rem}
+  .track .eyebrow{color:var(--red)}
+  .track h3{margin:.35rem 0 .6rem}
+  .track p{color:var(--muted);font-size:.98rem}
+  @media (max-width:720px){.tracks{grid-template-columns:1fr}}
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+  .fact{background:var(--paper-2);border:1px solid var(--line);padding:1.2rem 1.4rem}
+  .fact b{display:block;font-family:var(--display);font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+  .fact span{color:var(--muted);font-size:.9rem}
+  @media (max-width:720px){.facts{grid-template-columns:1fr}}
+
+  /* Numbers we run on */
+  .board{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);background:var(--card)}
+  .board div{padding:1.3rem 1.4rem;border-right:1px solid var(--line)}
+  .board div:last-child{border-right:0}
+  .board b{display:block;font-family:var(--display);font-size:1.15rem;font-weight:800;margin-bottom:.25rem}
+  .board span{color:var(--muted);font-size:.92rem}
+  @media (max-width:860px){.board{grid-template-columns:1fr 1fr}.board div:nth-child(2){border-right:0}.board div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+  @media (max-width:520px){.board{grid-template-columns:1fr}.board div{border-right:0;border-bottom:1px solid var(--line)}.board div:last-child{border-bottom:0}}
+
+  /* FAQ */
+  .faq{display:grid;gap:0;border-top:1px solid var(--line)}
+  .faq details{border-bottom:1px solid var(--line)}
+  .faq summary{cursor:pointer;list-style:none;padding:1.1rem 0;font-weight:700;display:flex;justify-content:space-between;gap:1rem}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";font-family:var(--display);font-weight:800;color:var(--red)}
+  .faq details[open] summary::after{content:"–"}
+  .faq details p{padding:0 0 1.2rem;color:var(--muted);max-width:44rem}
+
+  /* Apply */
+  .apply{background:var(--ink);color:var(--paper)}
+  .apply .eyebrow{color:#c9ccd2}
+  .apply .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2.5rem;align-items:start}
+  .apply p{color:#c9ccd2}
+  .apply .btn{background:var(--red);border-color:var(--red);color:#fff}
+  .apply .btn:hover{background:#fff;border-color:#fff;color:var(--ink)}
+  .apply .btn.ghost{background:transparent;color:var(--paper);border-color:var(--paper)}
+  .apply .btn.ghost:hover{background:var(--paper);color:var(--ink)}
+  .apply ol{margin:1rem 0 0;padding-left:1.2rem;color:#c9ccd2;display:grid;gap:.4rem}
+  @media (max-width:860px){.apply .grid{grid-template-columns:1fr}}
+
+  footer{padding:2rem 0 3rem;font-size:.88rem;color:var(--faint)}
+  footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="ArcLine, home">
+      <svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M3 24C3 12.4 12.4 3 24 3" stroke="#e0442f" stroke-width="4" stroke-linecap="square"/><path d="M10 24c0-7.7 6.3-14 14-14" stroke="#14161a" stroke-width="4" stroke-linecap="square"/></svg>
+      ArcLine
+    </a>
+    <nav class="links" aria-label="Sections">
+      <a href="#agency">Agency</a>
+      <a href="#coaching">Coaching</a>
+      <a href="#how">How it works</a>
+      <a href="#faq">FAQ</a>
+      <a href="#apply">Apply</a>
+    </nav>
+    <a class="btn" href="#apply">Apply</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <svg class="arc" viewBox="0 0 1000 600" fill="none" aria-hidden="true">
+      <path d="M-40 640C-40 260 260 -40 640 -40" stroke="#e0442f" stroke-width="2" opacity=".55"/>
+      <path d="M60 640C60 320 320 60 640 60" stroke="#14161a" stroke-width="1.5" opacity=".18"/>
+      <path d="M160 640C160 380 380 160 640 160" stroke="#14161a" stroke-width="1.5" opacity=".12"/>
+    </svg>
+    <div class="wrap grid">
+      <div>
+        <p class="eyebrow">Pinterest media buying · 1:1 e-commerce coaching</p>
+        <h1 style="margin-top:.8rem">Pinterest is the channel your competitors skipped.</h1>
+        <p class="lede">ArcLine runs Pinterest ads for stores that already win on Google and Meta — and coaches founders one-on-one, from first store to first scale.</p>
+      </div>
+      <div class="doors">
+        <a class="door" href="#agency">
+          <span class="eyebrow">Agency</span>
+          <h3>We run Pinterest for your store</h3>
+          <p>For stores with Google and Meta already profitable and the numbers in order. We add the channel and manage it.</p>
+          <span class="go" aria-hidden="true">→</span>
+        </a>
+        <a class="door" href="#coaching">
+          <span class="eyebrow">Coaching</span>
+          <h3>1:1, from zero or from stuck</h3>
+          <p>Starting a store, or scaling one that's plateaued. Weekly calls, your numbers, no group course.</p>
+          <span class="go" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="agency" aria-labelledby="who-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="who-title">Two doors, one rule: we only take on what we can make work.</h2>
+        <p>Pinterest performs when a store already converts. So the agency has hard requirements, and everyone who doesn't meet them yet has a place in coaching instead of a polite no.</p>
+      </div>
+      <div class="split">
+        <div class="panel dark">
+          <p class="eyebrow">Agency · done for you</p>
+          <h3>Pinterest media buying</h3>
+          <p class="who">For e-commerce stores that want Pinterest added as a paid channel, run by people who do only this.</p>
+          <ul class="check" aria-label="Requirements">
+            <li>Google Ads running and profitable</li>
+            <li>Meta Ads running and profitable</li>
+            <li>Your numbers known: margins, AOV, blended ROAS, break-even</li>
+            <li>Tracking in place: conversion API, product feed, catalog</li>
+            <li>Ready to invest in a new channel for at least three months</li>
+          </ul>
+          <div class="foot">
+            <a class="btn ghost" style="border-color:var(--paper);color:var(--paper)" href="#apply">Apply for the agency</a>
+            <small>We say no when the requirements aren't met. Then coaching is the door.</small>
+          </div>
+        </div>
+        <div class="panel">
+          <p class="eyebrow">Coaching · one-on-one</p>
+          <h3>E-commerce coaching</h3>
+          <p class="who">For two kinds of people: the beginner who wants to start properly, and the founder who has a store and is stuck at the same numbers.</p>
+          <ul class="check" aria-label="Who coaching is for">
+            <li>No store yet, or a store with no traction</li>
+            <li>A store that works but stopped growing</li>
+            <li>Want to start Pinterest, but Google and Meta aren't there yet</li>
+            <li class="no">Not for people looking for a course to watch</li>
+          </ul>
+          <div class="foot">
+            <a class="btn" href="#apply">Apply for coaching</a>
+            <small>Weekly 1:1 calls, your own store as the case.</small>
+          </div>
+        </div>
+      </div>
+      <div class="gate">
+        <p><strong>Not there yet, but you want Pinterest?</strong> That's exactly what coaching is for. We build the foundation — offer, store, Google and Meta, tracking, numbers — until the agency can take over.</p>
+        <a class="btn ghost" href="#coaching">See the coaching track →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="how-title">How the agency works</h2>
+        <p>No dashboards you have to interpret yourself, no "trust the algorithm". Every week you get the numbers that matter and what we changed because of them.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>Audit</h3><p>We look at your Google and Meta numbers, your catalog and your tracking. If Pinterest won't work for you, we tell you before you pay.</p></div>
+        <div class="step"><h3>Foundation</h3><p>Pinterest tag and conversion API, product feed and catalog, account structure, first creatives from what already sells.</p></div>
+        <div class="step"><h3>Test</h3><p>Small budgets, many products, one clear rule per test. We kill fast and scale what proves itself.</p></div>
+        <div class="step"><h3>Scale &amp; report</h3><p>Catalog and Performance+ campaigns on the winners. Weekly: spend, tracked and blended ROAS, next moves.</p></div>
+      </div>
+      <div class="board" style="margin-top:14px" aria-label="What we run on">
+        <div><b>Blended ROAS</b><span>Real shop revenue over all ad spend — not the platform's own claim.</span></div>
+        <div><b>Product-level P&amp;L</b><span>Every product: spend, tracked revenue, shop revenue, margin. Losers go offline.</span></div>
+        <div><b>Creative from data</b><span>Pins built from your bestsellers and competitor signals, not from taste.</span></div>
+        <div><b>Weekly, in writing</b><span>One page a week: what happened, why, what changes. No meetings for the sake of it.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="coaching" aria-labelledby="coach-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="coach-title">Coaching: one-on-one, your store as the case</h2>
+        <p>Not a course. A weekly working session with someone who runs stores and ad accounts every day, on your numbers, until you don't need it anymore.</p>
+      </div>
+      <div class="tracks">
+        <div class="track">
+          <p class="eyebrow">Track 1 · Start</p>
+          <h3>From zero to a store that sells</h3>
+          <p>Niche and product research the way we do it for our own stores, store setup, first listings, first ads on Meta and Google, tracking done right from day one. You leave with a store, a process and numbers you understand.</p>
+        </div>
+        <div class="track">
+          <p class="eyebrow">Track 2 · Scale</p>
+          <h3>From stuck to the next level</h3>
+          <p>You have a store and a plateau. We go through the P&amp;L per product, the creative pipeline, the ad structure and the channel mix — and add Pinterest when the foundation is there. Often the fastest route into the agency.</p>
+        </div>
+      </div>
+      <div class="facts" aria-label="Format">
+        <div class="fact"><b>1:1</b><span>Only you and your coach. No group calls, no community as a substitute for attention.</span></div>
+        <div class="fact"><b>Weekly</b><span>A working call every week, with homework between calls and Slack in between.</span></div>
+        <div class="fact"><b>Your numbers</b><span>Every call starts with your dashboard: spend, revenue, margin. Opinions come second.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="faq-title">Questions we get</h2>
+        <p>Short answers. Anything else, ask when you apply.</p>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>Why do you require Google and Meta to be profitable first?</summary>
+          <p>Because Pinterest amplifies a store that converts; it doesn't fix one that doesn't. If Google and Meta aren't paying back, the problem is the offer, the store or the tracking — and Pinterest budget would go to the same problem. Coaching fixes that first.</p>
+        </details>
+        <details>
+          <summary>What budget does the agency need?</summary>
+          <p>Enough to test properly across products and to run catalog campaigns once winners are found. We set the number together in the audit, based on your AOV and margin — not on a fixed package.</p>
+        </details>
+        <details>
+          <summary>Do you build the creatives?</summary>
+          <p>Yes. Pins are built from what already sells in your store and what runs at your competitors, with copy written for search on Pinterest. You approve, we publish.</p>
+        </details>
+        <details>
+          <summary>How is ArcLine different from a general ads agency?</summary>
+          <p>We only do Pinterest, we run our own e-commerce stores on it, and we report blended ROAS — real shop revenue over all spend — instead of the platform's tracked number.</p>
+        </details>
+        <details>
+          <summary>I'm a complete beginner. Is coaching for me?</summary>
+          <p>Yes, that's Track 1. You need time each week and a small budget for tools and first ads. You don't need a store, a product or experience.</p>
+        </details>
+        <details>
+          <summary>Can I move from coaching to the agency?</summary>
+          <p>That's the intended route. As soon as Google and Meta are profitable and the tracking is in place, the agency takes over Pinterest and coaching stops.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="apply" class="apply" aria-labelledby="apply-title">
+    <div class="wrap grid">
+      <div>
+        <p class="eyebrow">Apply</p>
+        <h2 id="apply-title" style="margin-top:.6rem">Tell us where you are. We tell you which door.</h2>
+        <p style="margin-top:1rem">One short message is enough: your store (if you have one), what you spend on Google and Meta, and what you want from Pinterest. You hear back within two working days with a clear yes, no, or "coaching first" — and why.</p>
+        <ol>
+          <li>Send the message below or book a call.</li>
+          <li>We look at your numbers before we talk.</li>
+          <li>Audit call: 30 minutes, honest.</li>
+        </ol>
+      </div>
+      <div style="display:grid;gap:14px;align-content:start">
+        <a class="btn" href="mailto:hello@arclineads.com?subject=Agency%20application&body=Store%3A%0AMonthly%20spend%20Google%3A%0AMonthly%20spend%20Meta%3A%0ABlended%20ROAS%3A%0AWhat%20I%20want%20from%20Pinterest%3A">Apply for the agency →</a>
+        <a class="btn ghost" href="mailto:hello@arclineads.com?subject=Coaching%20application&body=Do%20you%20have%20a%20store%3F%0AWhere%20are%20you%20stuck%3F%0AHours%20per%20week%20you%20can%20put%20in%3A">Apply for coaching →</a>
+        <p style="font-size:.9rem">Prefer a call? Replace this line with your booking link.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="y"></span> ArcLine · Pinterest media buying &amp; e-commerce coaching</span>
+    <span><a href="mailto:hello@arclineads.com">hello@arclineads.com</a></span>
+  </div>
+</footer>
+<script>document.getElementById("y").textContent=new Date().getFullYear()</script>
+</body>
+</html>
