@@ -4,25 +4,35 @@ Pinterest Ads media buying and 1:1 coaching agency.
 
 **Live site:** [arclineads.com](https://arclineads.com)
 
-## What's here
+## Pages
 
-| File | Purpose |
-| --- | --- |
-| `index.html` | The full website plus both application forms: media buying (`/#onboarding`) and 1:1 coaching (`/#apply-coaching`). A single self-contained file |
-| `CNAME` | Custom domain for GitHub Pages (`arclineads.com`) |
-| `README.md` | This file |
+| URL | File | Purpose |
+| --- | --- | --- |
+| `/` | `index.html` | Home: why Pinterest, results, the two offers, "which one" quiz |
+| `/media-buying/` | `media-buying/index.html` | Done-for-you service page: process, results, pricing, FAQ |
+| `/coaching/` | `coaching/index.html` | 1:1 coaching page: process, pricing, FAQ |
+| `/apply/media-buying/` | `apply/media-buying/index.html` | Media buying onboarding form |
+| `/apply/coaching/` | `apply/coaching/index.html` | 1:1 coaching application form |
+| `/terms/`, `/privacy/` | `terms/index.html`, `privacy/index.html` | Legal pages |
+| — | `404.html` | Not-found page |
+
+Shared files live in `assets/`: `css/site.css` (all styling), `js/site.js` (menu, quiz, animations),
+`js/apply.js` (both forms), `fonts/`, `img/`. `sitemap.xml` and `robots.txt` are for search engines.
+
+Old links such as `/#onboarding`, `/#apply-coaching`, `/#terms` and `/#privacy` redirect to the new pages.
+
+The site is plain HTML, CSS and JavaScript. There is no build step: edit a file, commit, and it is live.
 
 ## Services
 
-- **Media buying (done for you):** $299 one-time setup, then $299/mo or 8% of ad spend, whichever is higher. First payment after 30 days of running ads.
-- **1:1 Coaching (done with you):** Installments possible.
+- **Media buying (done for you):** $285 one-time setup, then $285/mo. First monthly payment after 30 days of running ads.
+- **1:1 Coaching (done with you):** price shared on the call. Installments possible.
 
-## Onboarding applications
+If pricing changes, update it in `index.html`, `media-buying/index.html` (pricing card, FAQ and the JSON-LD block in `<head>`) and `terms/index.html`.
 
-Each form sends answers to its own Google Sheet via a Google Apps Script web app:
+## Applications
 
-- **Media buying** → media buying applications sheet
-- **1:1 coaching** → coaching applications sheet
+Each form sends answers to its own Google Sheet via a Google Apps Script web app. The two URLs are at the top of `assets/js/apply.js`.
 
 A row is created as soon as someone completes step 1 (name + WhatsApp) and updates as they go. **Status** shows `In progress: reached step X of Y` or `Submitted`, so you can follow up with people who left early.
 
@@ -30,16 +40,9 @@ A row is created as soon as someone completes step 1 (name + WhatsApp) and updat
 - After editing the script, redeploy: **Deploy → Manage deployments → ✏️ → Version: New version**.
 - The web app must stay set to **Execute as: Me** and **Who has access: Anyone**.
 
-## Updating the site
-
-1. Export the new version as a single HTML file.
-2. Rename it to `index.html`.
-3. In this repo: **Add file → Upload files**, replace `index.html`, and commit.
-4. Wait 1–10 minutes, then hard-refresh (Cmd/Ctrl + Shift + R).
-
 ## Hosting
 
-Hosted on GitHub Pages from the `main` branch, root folder.
+Hosted on GitHub Pages from the `main` branch, root folder (`.github/workflows/static.yml`).
 
 DNS for `arclineads.com`:
 
