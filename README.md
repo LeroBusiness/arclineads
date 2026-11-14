@@ -23,9 +23,9 @@ The site is plain HTML, CSS and JavaScript. There is no build step: edit a file,
 
 ## Service
 
-**Media buying (done for you):** $285 one-time setup, then $285/mo. First monthly payment after 30 days of running ads.
+**Media buying (done for you):** $285/mo plus 8% of ad spend. No onboarding fee. First monthly payment after 30 days of running ads.
 
-If pricing changes, update it in `index.html` (hero strip, pricing card, FAQ and the JSON-LD block in `<head>`) and `terms/index.html`.
+If pricing changes, update it in `index.html` (pricing card, FAQ, the meta description and the JSON-LD block in `<head>`) and `terms/index.html`.
 
 ## Applications
 
