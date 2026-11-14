@@ -1,17 +1,13 @@
-/* Arcline Ads — application forms.
-   Each form posts to its own Google Sheet through a Google Apps Script web app.
+/* Arcline Ads — media buying application form.
+   The form posts to a Google Sheet through a Google Apps Script web app.
    A row is created when step 1 is completed and updated on every later step. */
 (function () {
   "use strict";
   var root = document.getElementById("apply-app");
   if (!root) return;
-  var COACH = root.dataset.mode === "coaching";
-
-  // Google Apps Script web app URLs (must end in /exec).
-  var ENDPOINT = COACH
-    ? "https://script.google.com/macros/s/AKfycbxsYjfeBsiFZX91lA1i5LZnxPTc4xe8XvbSIKGW9C9LhcoJ7ziOTZqDJcza5tdTDHL8/exec"
-    : "https://script.google.com/macros/s/AKfycbxVLfRMuspbXuTHb00utXSpZwKJlrKKlVnYpT6_1h3nRYEL7kJ-wP_gR02ljIOC6Naz/exec";
-  var KEY = "arcline-onboarding-v5" + (COACH ? "-coach" : "");
+  // Google Apps Script web app URL (must end in /exec).
+  var ENDPOINT = "https://script.google.com/macros/s/AKfycbxVLfRMuspbXuTHb00utXSpZwKJlrKKlVnYpT6_1h3nRYEL7kJ-wP_gR02ljIOC6Naz/exec";
+  var KEY = "arcline-onboarding-v5";
 
   var COUNTRIES = [["🇺🇸","United States","+1","US"],["🇬🇧","United Kingdom","+44","GB"],["🇨🇦","Canada","+1","CA"],["🇦🇺","Australia","+61","AU"],["🇳🇿","New Zealand","+64","NZ"],["🇮🇪","Ireland","+353","IE"],["🇩🇪","Germany","+49","DE"],["🇫🇷","France","+33","FR"],["🇳🇱","Netherlands","+31","NL"],["🇧🇪","Belgium","+32","BE"],["🇪🇸","Spain","+34","ES"],["🇮🇹","Italy","+39","IT"],["🇵🇹","Portugal","+351","PT"],["🇨🇭","Switzerland","+41","CH"],["🇦🇹","Austria","+43","AT"],["🇸🇪","Sweden","+46","SE"],["🇳🇴","Norway","+47","NO"],["🇩🇰","Denmark","+45","DK"],["🇫🇮","Finland","+358","FI"],["🇵🇱","Poland","+48","PL"],["🇷🇴","Romania","+40","RO"],["🇬🇷","Greece","+30","GR"],["🇲🇰","North Macedonia","+389","MK"],["🇷🇸","Serbia","+381","RS"],["🇭🇷","Croatia","+385","HR"],["🇧🇬","Bulgaria","+359","BG"],["🇦🇱","Albania","+355","AL"],["🇹🇷","Turkey","+90","TR"],["🇦🇪","UAE","+971","AE"],["🇸🇦","Saudi Arabia","+966","SA"],["🇿🇦","South Africa","+27","ZA"],["🇮🇳","India","+91","IN"],["🇸🇬","Singapore","+65","SG"],["🇲🇽","Mexico","+52","MX"],["🇧🇷","Brazil","+55","BR"]];
 
@@ -26,15 +22,9 @@
     catalog: { type: "single", q: "Catalogue", title: "What is your Pinterest Catalogue status?", options: ["Connected & approved", "Connected, but has errors", "Not set up yet", "Not sure"] },
     budget: { type: "single", q: "Ad budget", title: "What is your monthly ad budget?", options: ["€1 – 4k", "€5 – 10k", "€10 – 20k", "€20k+"] },
     roas: { type: "roas", q: "BER / Target ROAS", title: "What is your BER and Target ROAS?", sub: "Your break-even ROAS and the return you aim for." },
-    expect: { type: "text", q: "Expectations", title: "What do you expect from Arcline?", ph: "Briefly tell us what you hope to achieve..." },
-    stage: { type: "single", q: "Current stage", title: "Where are you right now?", options: ["No store yet", "Store live, no sales yet", "Making sales, new to Pinterest", "Running Pinterest Ads, not profitable", "Profitable on Pinterest, want to scale"] },
-    struggle: { type: "text", q: "Struggle", title: "Where are you struggling right now?", ph: "e.g. My ads get clicks but barely any sales..." },
-    goal: { type: "text", q: "Goal", title: "What do you want to achieve with the coaching?", ph: "e.g. Reach €20k/month profitably with Pinterest Ads" },
-    adBudget: { type: "single", q: "Ad budget while learning", title: "How much can you spend on ads per month while learning?", options: ["Under €500", "€500 – 1.5k", "€1.5 – 5k", "€5k+"] },
-    whyNow: { type: "text", q: "Why now", title: "Why do you want to start now?", ph: "e.g. I've tried Meta for months and I'm ready to try what actually works..." },
-    invest: { type: "single", q: "Ready to invest", title: "Are you ready to invest in yourself if we're a good fit?", options: ["Yes, ready now", "Yes, with installments", "Not right now"] }
+    expect: { type: "text", q: "Expectations", title: "What do you expect from Arcline?", ph: "Briefly tell us what you hope to achieve..." }
   };
-  var EMPTY = { first: "", last: "", company: "", email: "", country: "0", phone: "", store: "", newStore: "", url: "", revenue: "", niche: "", platforms: "", pinAcct: "", catalog: "", budget: "", ber: "", target: "", expect: "", stage: "", struggle: "", goal: "", adBudget: "", whyNow: "", invest: "" };
+  var EMPTY = { first: "", last: "", company: "", email: "", country: "0", phone: "", store: "", newStore: "", url: "", revenue: "", niche: "", platforms: "", pinAcct: "", catalog: "", budget: "", ber: "", target: "", expect: "" };
 
   var st = { step: 0, f: Object.assign({}, EMPTY), err: "", sent: false, busy: false };
   try {
@@ -45,7 +35,6 @@
 
   function route() {
     var f = st.f;
-    if (COACH) return ["contact", "stage", "struggle", "goal", "adBudget", "whyNow", "invest"];
     var r = ["contact", "store"];
     if (f.store === "No") return r.concat(["newStore"], f.newStore === "No" ? ["expect"] : ["budget", "expect"]);
     return r.concat(["revenue", "niche", "platforms", "pinAcct"], f.pinAcct === "Not yet" ? [] : ["catalog"], ["budget", "roas", "expect"]);
@@ -57,7 +46,7 @@
     var f = st.f, id = route()[st.step], s = S[id];
     if (id === "contact") {
       if (!f.first.trim() || !f.last.trim()) return "Please add your first and last name.";
-      if (!COACH && !f.company.trim()) return "Please add your company or brand name.";
+      if (!f.company.trim()) return "Please add your company or brand name.";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) return "Please enter a valid email address.";
       if (f.phone.replace(/\D/g, "").length < 6) return "Please enter your WhatsApp number.";
     }
@@ -70,7 +59,7 @@
   function answers() {
     var f = st.f, c = COUNTRIES[+f.country] || COUNTRIES[0];
     var out = { Name: (f.first + " " + f.last).trim(), Email: f.email, Prefix: c[3] + " " + c[2], WhatsApp: "'" + f.phone.replace(/\D/g, "") };
-    if (!COACH) out.Company = f.company;
+    out.Company = f.company;
     route().slice(1).forEach(function (id) {
       if (id === "roas") out["BER / Target ROAS"] = f.ber + " / " + f.target;
       else out[S[id].q] = f[id];
@@ -138,7 +127,7 @@
         el("div", { class: "step-label", text: "Application received" }),
         el("h1", { text: "Thank you, " + st.f.first.trim() + "." }),
         el("p", { text: "We've got your application. Our team will review it and reach out to you within a few hours." }),
-        el("a", { class: "btn ghost", href: "/", text: "Back to site →" })
+        el("a", { class: "btn ghost", href: "/", text: "Back to site" })
       ]));
       return;
     }
@@ -158,7 +147,7 @@
         input("first", { placeholder: "First name *", "aria-label": "First name", autocomplete: "given-name" }),
         input("last", { placeholder: "Last name *", "aria-label": "Last name", autocomplete: "family-name" })
       ]));
-      if (!COACH) fields.appendChild(input("company", { placeholder: "Company / brand name *", "aria-label": "Company or brand name", autocomplete: "organization" }));
+      fields.appendChild(input("company", { placeholder: "Company / brand name *", "aria-label": "Company or brand name", autocomplete: "organization" }));
       fields.appendChild(input("email", { type: "email", placeholder: "Email address * (e.g. you@domain.com)", "aria-label": "Email address", autocomplete: "email" }));
       var sel = el("select", { class: "inp", "aria-label": "Country code", onchange: function (e) { st.f.country = e.target.value; save(); } },
         COUNTRIES.map(function (c, k) { return el("option", { value: String(k), text: c[0] + "  " + c[1] + " (" + c[2] + ")" }); }));
@@ -191,7 +180,7 @@
 
     root.appendChild(el("div", { class: "form-nav" }, [
       i > 0 ? el("button", { type: "button", class: "back-btn", onclick: back, text: "← Back" }) : el("span"),
-      (!single || showUrl) ? el("button", { type: "button", class: "btn", disabled: st.busy, onclick: next, text: st.busy ? "Sending…" : (last ? "Submit application →" : "Continue →") }) : null
+      (!single || showUrl) ? el("button", { type: "button", class: "btn", disabled: st.busy, onclick: next, text: st.busy ? "Sending…" : (last ? "Submit application" : "Continue") }) : null
     ]));
     if (i === 0) {
       var note = el("p", { class: "privacy-note" });

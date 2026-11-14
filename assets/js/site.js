@@ -1,13 +1,12 @@
-/* Arcline Ads — site behaviour. Every page works without this file; it only adds polish. */
+/* Arcline Ads — site behaviour. The page works without this file; it adds motion and polish. */
 (function () {
   "use strict";
-  var doc = document;
+  var doc = document, root = doc.documentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var $ = function (s, r) { return (r || doc).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || doc).querySelectorAll(s)); };
 
   /* Mobile menu */
-  var menuBtn = $(".menu-btn"), menu = $("#mobile-menu");
+  var menuBtn = doc.querySelector(".menu-btn"), menu = doc.getElementById("mobile-menu");
   if (menuBtn && menu) {
     var setMenu = function (open) { menu.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", String(open)); };
     menuBtn.addEventListener("click", function () { setMenu(!menu.classList.contains("open")); });
@@ -15,114 +14,118 @@
     doc.addEventListener("keydown", function (e) { if (e.key === "Escape") setMenu(false); });
   }
 
-  /* Reveal on scroll */
+  /* Reveal on scroll, with a stagger inside each group */
+  $$("[data-stagger]").forEach(function (g) {
+    Array.prototype.forEach.call(g.children, function (c, i) { c.classList.add("reveal"); c.style.setProperty("--i", i); });
+  });
   var reveals = $$(".reveal");
   if (reduce || !("IntersectionObserver" in window)) {
     reveals.forEach(function (n) { n.classList.add("in"); });
   } else {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.08 });
     reveals.forEach(function (n) { io.observe(n); });
   }
 
-  /* Count-up numbers: <dd data-count="14.2" data-prefix="$" data-suffix="M" data-decimals="1"> */
-  var counters = $$("[data-count]");
-  if (counters.length && !reduce && "IntersectionObserver" in window) {
-    var run = function (el) {
-      var end = parseFloat(el.dataset.count), dec = parseInt(el.dataset.decimals || "0", 10);
-      var pre = el.dataset.prefix || "", suf = el.dataset.suffix || "", t0 = performance.now(), dur = 1400;
-      var tick = function (now) {
-        var p = Math.min(1, (now - t0) / dur), v = end * (1 - Math.pow(1 - p, 3));
-        el.textContent = pre + v.toFixed(dec) + suf;
-        if (p < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
+  /* Count-up numbers: <dd data-count="35163" data-prefix="$"> */
+  var fmt = function (el, v) {
+    var dec = parseInt(el.dataset.decimals || "0", 10);
+    return (el.dataset.prefix || "") + v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec }) + (el.dataset.suffix || "");
+  };
+  var count = function (el, delay) {
+    var end = parseFloat(el.dataset.count), t0 = null, dur = 1600;
+    el.textContent = fmt(el, 0);
+    var tick = function (now) {
+      if (t0 === null) t0 = now + (delay || 0);
+      var p = Math.max(0, Math.min(1, (now - t0) / dur));
+      el.textContent = fmt(el, end * (1 - Math.pow(1 - p, 4)));
+      if (p < 1) requestAnimationFrame(tick);
     };
+    requestAnimationFrame(tick);
+  };
+  if (!reduce && "IntersectionObserver" in window) {
     var cio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) { run(e.target); cio.unobserve(e.target); } });
-    }, { threshold: 0.4 });
-    counters.forEach(function (n) { cio.observe(n); });
+      entries.forEach(function (e) { if (e.isIntersecting) { count(e.target, e.target.closest(".tablet") ? 900 : 0); cio.unobserve(e.target); } });
+    }, { threshold: 0.3 });
+    $$("[data-count]").forEach(function (n) { cio.observe(n); });
   }
 
-  /* Rotating hero proof */
-  var proof = $("[data-proof]");
-  if (proof && !reduce) {
-    var items = JSON.parse(proof.dataset.proof), bgs = ["#b8623f", "#8a5fb0", "#3f8fb0", "#3f9a6a"], i = 0;
-    setInterval(function () {
-      proof.classList.add("out");
-      setTimeout(function () {
-        i = (i + 1) % items.length;
-        var it = items[i], av = $(".av", proof);
-        av.textContent = it[0].split(/\s+/).map(function (w) { return w[0] || ""; }).join("").slice(0, 2).toUpperCase();
-        av.style.background = bgs[i % bgs.length];
-        $(".nm", proof).textContent = it[0];
-        $(".rs", proof).textContent = it[1];
-        $(".tm", proof).textContent = it[2];
-        proof.classList.remove("out");
-      }, 300);
-    }, 3200);
+  /* Scroll-linked: header state, tablet tilt, step rail */
+  var tablet = doc.querySelector(".tablet"), rail = doc.querySelector(".rail"), ticking = false;
+  var onScroll = function () {
+    ticking = false;
+    var y = window.scrollY, vh = window.innerHeight;
+    root.classList.toggle("scrolled", y > 24);
+    if (tablet && !reduce) {
+      var r = tablet.parentNode.getBoundingClientRect();
+      var p = Math.max(0, Math.min(1, (vh - r.top) / (vh * 0.85)));
+      var e = 1 - Math.pow(1 - p, 2);
+      tablet.style.setProperty("--tilt", (24 * (1 - e)).toFixed(2) + "deg");
+      tablet.style.setProperty("--scale", (0.9 + 0.1 * e).toFixed(4));
+    }
+    if (rail) {
+      var rr = rail.getBoundingClientRect();
+      rail.style.setProperty("--p", Math.max(0, Math.min(1, (vh * 0.8 - rr.top) / (vh * 0.45))).toFixed(3));
+    }
+  };
+  window.addEventListener("scroll", function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+  window.addEventListener("resize", onScroll);
+  onScroll();
+
+  /* Cursor spotlight on cards */
+  if (window.matchMedia("(hover: hover)").matches) {
+    $$(".card").forEach(function (c) {
+      c.addEventListener("pointermove", function (e) {
+        var r = c.getBoundingClientRect();
+        c.style.setProperty("--mx", (e.clientX - r.left) + "px");
+        c.style.setProperty("--my", (e.clientY - r.top) + "px");
+      });
+    });
+  }
+
+  /* Comparison chart tabs */
+  var chart = doc.querySelector("[data-chart]");
+  if (chart) {
+    var data = JSON.parse(chart.dataset.chart), cols = $$(".col", chart), cap = doc.getElementById("chart-cap");
+    var tabs = $$(".tabs button");
+    var show = function (key) {
+      var d = data[key];
+      cols.forEach(function (col, i) {
+        col.style.setProperty("--h", d.h[i]);
+        col.querySelector(".val").textContent = d.v[i];
+      });
+      cap.textContent = d.cap;
+      tabs.forEach(function (t) { t.setAttribute("aria-selected", String(t.dataset.key === key)); });
+    };
+    tabs.forEach(function (t) { t.addEventListener("click", function () { show(t.dataset.key); }); });
+    /* grow the bars the first time the chart scrolls into view */
+    if (!reduce && "IntersectionObserver" in window) {
+      cols.forEach(function (col) { col.dataset.h = col.style.getPropertyValue("--h"); col.style.setProperty("--h", 0); });
+      var chio = new IntersectionObserver(function (en) {
+        if (en[0].isIntersecting) { cols.forEach(function (col) { col.style.setProperty("--h", col.dataset.h); }); chio.disconnect(); }
+      }, { threshold: 0.4 });
+      chio.observe(chart);
+    }
   }
 
   /* Proof screenshot dialog */
-  var dlg = $("#proof-dialog");
+  var dlg = doc.getElementById("proof-dialog");
   if (dlg && dlg.showModal) {
     $$("[data-open-proof]").forEach(function (b) { b.addEventListener("click", function (e) { e.preventDefault(); dlg.showModal(); }); });
     dlg.addEventListener("click", function (e) { if (e.target === dlg || e.target.closest("[data-close]")) dlg.close(); });
   }
 
   /* More results */
-  var moreBtn = $("[data-more]");
+  var moreBtn = doc.querySelector("[data-more]");
   if (moreBtn) {
     var extra = doc.getElementById(moreBtn.getAttribute("aria-controls"));
     moreBtn.addEventListener("click", function () {
       var open = extra.hidden;
       extra.hidden = !open;
+      if (open) $$(".reveal", extra).forEach(function (n) { n.classList.add("in"); });
       moreBtn.setAttribute("aria-expanded", String(open));
-      moreBtn.textContent = open ? "Show less ↑" : "View more results ↓";
-    });
-  }
-
-  /* Testimonial carousel */
-  var track = $("[data-chats]");
-  if (track) {
-    var step = function () { var c = track.firstElementChild; return c ? c.offsetWidth + 18 : 300; };
-    var prev = $("[data-chat-prev]"), next = $("[data-chat-next]");
-    if (prev) prev.addEventListener("click", function () { track.scrollLeft <= 4 ? track.scrollTo({ left: track.scrollWidth }) : track.scrollBy({ left: -step() }); });
-    if (next) next.addEventListener("click", function () { track.scrollLeft + track.clientWidth >= track.scrollWidth - 4 ? track.scrollTo({ left: 0 }) : track.scrollBy({ left: step() }); });
-  }
-
-  /* Which-one quiz */
-  var quiz = $("[data-quiz]");
-  if (quiz) {
-    var ans = {}, out = $(".quiz-result", quiz);
-    var show = function () {
-      if (!ans.q1 || !ans.q2) return;
-      var coach = ans.q2 === "yes", title, text;
-      if (coach) {
-        title = "1:1 Coaching";
-        text = ans.q1 === "yes" ? "Your store already works. We'll teach you to add Pinterest yourself." : "We'll teach you to launch and scale Pinterest on your own store.";
-      } else {
-        title = "Media buying";
-        text = ans.q1 === "yes" ? "Your store already converts. Hand us Pinterest and we'll run it." : ans.q1 === "none" ? "No store yet? No problem. We'll help you get set up and run Pinterest for you." : "Not profitable yet? Hand us Pinterest and we'll build it for you.";
-      }
-      out.classList.toggle("c2", coach);
-      $("b", out).textContent = title;
-      $("p", out).textContent = text;
-      var more = $("[data-res-more]", out), apply = $("[data-res-apply]", out);
-      more.href = coach ? "/coaching/" : "/media-buying/";
-      more.textContent = coach ? "How coaching works" : "How media buying works";
-      apply.href = coach ? "/apply/coaching/" : "/apply/media-buying/";
-      apply.textContent = coach ? "Apply for 1:1 coaching" : "Apply for media buying";
-      apply.classList.toggle("c2", coach);
-      out.hidden = false;
-    };
-    quiz.addEventListener("click", function (e) {
-      var b = e.target.closest(".opt");
-      if (!b) return;
-      $$('.opt[data-q="' + b.dataset.q + '"]', quiz).forEach(function (o) { o.setAttribute("aria-pressed", String(o === b)); });
-      ans[b.dataset.q] = b.dataset.v;
-      show();
+      moreBtn.textContent = open ? "Show fewer results" : "Show more results";
     });
   }
 })();
