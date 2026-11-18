@@ -1,11 +1,12 @@
 /* Arcline Ads — media buying application form.
    Every step goes to two places:
    1. The Google Sheet (Google Apps Script web app), as before.
-   2. The Arcline dashboard API. On submit the API creates the client account
-      and emails an invite; the applicant sets a password and lands in the
-      dashboard at client.arclineads.com (same flow as Pinscale).
-   If the API is down, the Sheet still has everything and the old
-   "we'll reach out" thank-you screen is shown. */
+   2. The Arcline dashboard API. On submit the applicant becomes a LEAD in
+      OPS (no account, no email yet). We bill by hand, so the team contacts
+      them and sends the dashboard invite from OPS once they have paid.
+   The thank-you screen says we'll reach out. Someone who is already a client
+   is sent to log in. (If the API is ever set to invite straight away, the
+   "check your inbox" screen below takes over by itself.) */
 (function () {
   "use strict";
   var root = document.getElementById("apply-app");
@@ -173,8 +174,6 @@
     if (!a) return Promise.reject(new Error("none"));
     return apiCall("/" + a.id + "/resend-invite", { method: "POST", token: a.token });
   }
-  // No store and no plan to start one: nothing to set up in the dashboard yet, so no account.
-  function wantsAccount() { return !(st.f.store === "No" && st.f.newStore === "No"); }
 
   function next() {
     clearTimeout(advTimer);
@@ -197,7 +196,7 @@
   function back() { clearTimeout(advTimer); st.step = Math.max(0, st.step - 1); st.err = ""; render(); window.scrollTo(0, 0); }
   function submit() {
     st.busy = true; render();
-    var account = wantsAccount() ? apiSubmit() : apiSave(st.step).then(function () { return null; });
+    var account = apiSubmit();
     Promise.all([sync("Submitted"), account]).then(function (res) {
       try { localStorage.removeItem(KEY + "-id"); } catch (e) {}
       leadId = null; st.sent = true; st.busy = false; st.status = res[1] || null;

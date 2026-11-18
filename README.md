@@ -31,12 +31,11 @@ If pricing changes, update it in `index.html` (pricing card, FAQ, the meta descr
 
 The form sends every step to two places (URLs at the top of `assets/js/apply.js`):
 
-1. **The Arcline dashboard API** (`/api/website/applications`). On submit the API creates the client in OPS
-   (In onboarding) and emails an invite. The applicant sets a password and lands in the dashboard at
-   [client.arclineads.com](https://client.arclineads.com) with the setup checklist, the same flow as Pinscale.
-   Someone who is already a client is sent to log in instead. Someone without a store who does not want to
-   start one gets no account, only the "we'll reach out" screen. utm tags and `?ref=` are remembered from the
-   first page of the visit (`site.js`) and stored with the application.
+1. **The Arcline dashboard API** (`/api/website/applications`). On submit the applicant becomes a **lead** in
+   OPS (In onboarding, label "Lead", with all answers in the client profile). No account and no email yet:
+   we bill by hand, so the team contacts them and clicks **Send invite** in OPS once they have paid. The
+   applicant sees "we'll reach out". Someone who is already a client is sent to log in. utm tags and `?ref=`
+   are remembered from the first page of the visit (`site.js`) and stored with the application.
 2. **The Google Sheet**, via a Google Apps Script web app, as a backup and for follow-up. If the API is down,
    the Sheet still has the application and the applicant sees the "we'll reach out" screen.
 
