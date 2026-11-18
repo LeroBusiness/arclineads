@@ -29,7 +29,18 @@ If pricing changes, update it in `index.html` (pricing card, FAQ, the meta descr
 
 ## Applications
 
-The form sends answers to a Google Sheet via a Google Apps Script web app. The URL is at the top of `assets/js/apply.js`.
+The form sends every step to two places (URLs at the top of `assets/js/apply.js`):
+
+1. **The Arcline dashboard API** (`/api/website/applications`). On submit the API creates the client in OPS
+   (In onboarding) and emails an invite. The applicant sets a password and lands in the dashboard at
+   [client.arclineads.com](https://client.arclineads.com) with the setup checklist, the same flow as Pinscale.
+   Someone who is already a client is sent to log in instead. Someone without a store who does not want to
+   start one gets no account, only the "we'll reach out" screen. utm tags and `?ref=` are remembered from the
+   first page of the visit (`site.js`) and stored with the application.
+2. **The Google Sheet**, via a Google Apps Script web app, as a backup and for follow-up. If the API is down,
+   the Sheet still has the application and the applicant sees the "we'll reach out" screen.
+
+The header has a **Log in** link to the dashboard.
 
 A row is created as soon as someone completes step 1 (name + WhatsApp) and updates as they go. **Status** shows `In progress: reached step X of Y` or `Submitted`, so you can follow up with people who left early.
 

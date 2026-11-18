@@ -68,6 +68,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .nav { display: flex; gap: 4px; margin-right: 8px; font-size: 14.5px; }
 .nav a { padding: 8px 14px; border-radius: 999px; color: var(--muted); transition: color 200ms ease, background 200ms ease; }
 .nav a:hover { color: #fff; background: var(--panel-2); }
+.login-link { padding: 8px 14px; border-radius: 999px; font-size: 14.5px; color: var(--muted); transition: color 200ms ease, background 200ms ease; }
+.login-link:hover { color: #fff; background: var(--panel-2); }
 .menu-btn { display: none; width: 40px; height: 40px; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: var(--panel-2); border: 0; border-radius: 50%; padding: 0; }
 .menu-btn span { width: 15px; height: 1.5px; background: #fff; transition: transform 240ms var(--ease); }
 .menu-btn[aria-expanded="true"] span:first-child { transform: translateY(3.75px) rotate(45deg); }
@@ -75,7 +77,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .mobile-menu { pointer-events: auto; display: none; max-width: 1040px; margin: 8px auto 0; padding: 8px 20px 12px; flex-direction: column; border-radius: 24px; border: 1px solid var(--stroke-2); background: rgba(12, 13, 18, 0.94); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
 .mobile-menu a { padding: 15px 0; border-bottom: 1px solid var(--stroke); font-size: 18px; }
 .mobile-menu a:last-child { border-bottom: 0; }
-@media (max-width: 899px) { .nav { display: none; } .menu-btn { display: flex; } .mobile-menu.open { display: flex; animation: drop 260ms var(--ease); } }
+@media (max-width: 899px) { .nav, .login-link { display: none; } .menu-btn { display: flex; } .mobile-menu.open { display: flex; animation: drop 260ms var(--ease); } }
 
 /* Background scenery */
 .scene { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
@@ -346,6 +348,9 @@ select.inp { background-color: #101116; }
 .done .ok { width: 64px; height: 64px; margin: 0 auto 24px; border-radius: 50%; background: var(--grad); display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 0 60px rgba(255, 84, 54, 0.6); }
 .done p { margin: 16px auto 0; max-width: 44ch; color: var(--muted); }
 .done .btn { margin-top: 32px; }
+.done p.note { font-size: 14px; color: var(--dim); }
+.done p.note .link { color: var(--muted); }
+.done strong { color: var(--text); font-weight: 600; }
 .btn.ghost { background: var(--panel-2); text-shadow: none; box-shadow: inset 0 0 0 1px var(--stroke-2); }
 
 /* Scroll reveals (only when JavaScript is running) */

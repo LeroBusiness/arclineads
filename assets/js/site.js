@@ -5,6 +5,18 @@
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var $$ = function (s, r) { return Array.prototype.slice.call((r || doc).querySelectorAll(s)); };
 
+  /* Remember where this visit came from (utm tags, partner ?ref=, referrer).
+     The application form sends it to the Arcline dashboard with the application. */
+  try {
+    if (!sessionStorage.getItem("arcline-source")) {
+      var q = new URLSearchParams(location.search), src = {};
+      ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "ref"].forEach(function (k) { var v = q.get(k); if (v) src[k] = v.slice(0, 500); });
+      if (doc.referrer && doc.referrer.indexOf(location.origin) !== 0) src.referrer = doc.referrer.slice(0, 500);
+      src.landing_page = location.pathname.slice(0, 200);
+      sessionStorage.setItem("arcline-source", JSON.stringify(src));
+    }
+  } catch (e) {}
+
   /* Mobile menu */
   var menuBtn = doc.querySelector(".menu-btn"), menu = doc.getElementById("mobile-menu");
   if (menuBtn && menu) {

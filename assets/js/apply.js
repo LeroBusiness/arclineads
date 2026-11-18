@@ -1,6 +1,11 @@
 /* Arcline Ads — media buying application form.
-   The form posts to a Google Sheet through a Google Apps Script web app.
-   A row is created when step 1 is completed and updated on every later step. */
+   Every step goes to two places:
+   1. The Google Sheet (Google Apps Script web app), as before.
+   2. The Arcline dashboard API. On submit the API creates the client account
+      and emails an invite; the applicant sets a password and lands in the
+      dashboard at client.arclineads.com (same flow as Pinscale).
+   If the API is down, the Sheet still has everything and the old
+   "we'll reach out" thank-you screen is shown. */
 (function () {
   "use strict";
   var root = document.getElementById("apply-app");
@@ -8,6 +13,11 @@
   // Google Apps Script web app URL (must end in /exec).
   var ENDPOINT = "https://script.google.com/macros/s/AKfycbxVLfRMuspbXuTHb00utXSpZwKJlrKKlVnYpT6_1h3nRYEL7kJ-wP_gR02ljIOC6Naz/exec";
   var KEY = "arcline-onboarding-v5";
+  // Arcline dashboard: the API that creates the account, and where clients log in.
+  var API = "https://api-production-164d65a9.up.railway.app/api/website/applications";
+  var APP_URL = "https://client.arclineads.com";
+  var APP_KEY = "arcline-application";   // { id, token } handed out by the API
+  var SOURCE_KEY = "arcline-source";     // utm/ref/referrer of this visit (set in site.js too)
 
   var COUNTRIES = [["🇺🇸","United States","+1","US"],["🇬🇧","United Kingdom","+44","GB"],["🇨🇦","Canada","+1","CA"],["🇦🇺","Australia","+61","AU"],["🇳🇿","New Zealand","+64","NZ"],["🇮🇪","Ireland","+353","IE"],["🇩🇪","Germany","+49","DE"],["🇫🇷","France","+33","FR"],["🇳🇱","Netherlands","+31","NL"],["🇧🇪","Belgium","+32","BE"],["🇪🇸","Spain","+34","ES"],["🇮🇹","Italy","+39","IT"],["🇵🇹","Portugal","+351","PT"],["🇨🇭","Switzerland","+41","CH"],["🇦🇹","Austria","+43","AT"],["🇸🇪","Sweden","+46","SE"],["🇳🇴","Norway","+47","NO"],["🇩🇰","Denmark","+45","DK"],["🇫🇮","Finland","+358","FI"],["🇵🇱","Poland","+48","PL"],["🇷🇴","Romania","+40","RO"],["🇬🇷","Greece","+30","GR"],["🇲🇰","North Macedonia","+389","MK"],["🇷🇸","Serbia","+381","RS"],["🇭🇷","Croatia","+385","HR"],["🇧🇬","Bulgaria","+359","BG"],["🇦🇱","Albania","+355","AL"],["🇹🇷","Turkey","+90","TR"],["🇦🇪","UAE","+971","AE"],["🇸🇦","Saudi Arabia","+966","SA"],["🇿🇦","South Africa","+27","ZA"],["🇮🇳","India","+91","IN"],["🇸🇬","Singapore","+65","SG"],["🇲🇽","Mexico","+52","MX"],["🇧🇷","Brazil","+55","BR"]];
 
@@ -26,7 +36,7 @@
   };
   var EMPTY = { first: "", last: "", company: "", email: "", country: "0", phone: "", store: "", newStore: "", url: "", revenue: "", niche: "", platforms: "", pinAcct: "", catalog: "", budget: "", ber: "", target: "", expect: "" };
 
-  var st = { step: 0, f: Object.assign({}, EMPTY), err: "", sent: false, busy: false };
+  var st = { step: 0, f: Object.assign({}, EMPTY), err: "", sent: false, busy: false, status: null, resend: "" };
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || "null");
     if (saved && saved.f) { st.step = saved.step || 0; st.f = Object.assign({}, EMPTY, saved.f); }
@@ -76,6 +86,96 @@
     var body = JSON.stringify(Object.assign({ ID: lid(), Status: status, Updated: new Date().toLocaleString("en-GB") }, answers()));
     return fetch(ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: body }).catch(function () {});
   }
+
+  /* Arcline dashboard API */
+  function captureSource() {
+    try {
+      if (sessionStorage.getItem(SOURCE_KEY)) return;
+      var q = new URLSearchParams(location.search), out = {};
+      ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "ref"].forEach(function (k) { var v = q.get(k); if (v) out[k] = v.slice(0, 500); });
+      if (document.referrer && document.referrer.indexOf(location.origin) !== 0) out.referrer = document.referrer.slice(0, 500);
+      out.landing_page = location.pathname.slice(0, 200);
+      sessionStorage.setItem(SOURCE_KEY, JSON.stringify(out));
+    } catch (e) {}
+  }
+  function source() { try { return JSON.parse(sessionStorage.getItem(SOURCE_KEY) || "{}"); } catch (e) { return {}; } }
+  function getApp() { try { return JSON.parse(localStorage.getItem(APP_KEY) || "null"); } catch (e) { return null; } }
+  function setApp(a) { try { if (a) localStorage.setItem(APP_KEY, JSON.stringify(a)); else localStorage.removeItem(APP_KEY); } catch (e) {} }
+  function apiCall(path, opts) {
+    var headers = { "Content-Type": "application/json" };
+    if (opts.token) headers["X-Application-Token"] = opts.token;
+    return fetch(API + path, { method: opts.method, headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        if (!res.ok) { var err = new Error(data && data.message || "Request failed"); err.status = res.status; throw err; }
+        return data;
+      });
+    });
+  }
+  function contactPayload() {
+    var f = st.f, c = COUNTRIES[+f.country] || COUNTRIES[0], digits = f.phone.replace(/\D/g, "");
+    return {
+      first_name: f.first.trim(), last_name: f.last.trim(), email: f.email.trim(),
+      company_name: f.company.trim() || null,
+      phone: digits ? (c[2] + " " + digits).slice(0, 40) : null,
+      store_url: f.store === "Yes" && f.url.trim() ? f.url.trim() : null,
+      marketing_optin: true
+    };
+  }
+  var ANSWER_KEYS = { store: "shopify_store", newStore: "start_new_store", revenue: "monthly_revenue", niche: "niche", platforms: "ad_platforms", pinAcct: "pinterest_accounts", catalog: "catalogue", budget: "ad_budget", expect: "expectations" };
+  function answersPayload() {
+    var f = st.f, out = {}, c = COUNTRIES[+f.country] || COUNTRIES[0];
+    out.country = c[1];
+    route().slice(1).forEach(function (id) {
+      if (id === "roas") { out.break_even_roas = f.ber.trim(); out.target_roas = f.target.trim(); }
+      else if (ANSWER_KEYS[id] && f[id]) out[ANSWER_KEYS[id]] = String(f[id]).slice(0, 5000);
+    });
+    return out;
+  }
+  function progress(stepIndex) {
+    var r = route();
+    return { step: r[Math.min(stepIndex, r.length - 1)], steps_completed: stepIndex + 1, total_steps: r.length };
+  }
+  function apiStart(stepIndex) {
+    return apiCall("", { method: "POST", body: { contact: contactPayload(), progress: progress(stepIndex), source: source(), website: "" } })
+      .then(function (a) { setApp({ id: a.id, token: a.token }); return a; });
+  }
+  // One call at a time, in order: a quick second click must not start a second application.
+  var queue = Promise.resolve();
+  function enqueue(fn) { queue = queue.then(fn, fn); return queue; }
+  // A step is done. Starts the application when there is none yet (or the old one is gone).
+  function apiSave(stepIndex) { return enqueue(function () { return saveNow(stepIndex); }); }
+  function saveNow(stepIndex) {
+    var a = getApp();
+    if (!a || a.submitted) return apiStart(stepIndex).catch(function () {});
+    return apiCall("/" + a.id, { method: "PATCH", token: a.token, body: { contact: contactPayload(), answers: answersPayload(), progress: progress(stepIndex) } })
+      .catch(function (e) {
+        if ([400, 401, 404, 409].indexOf(e.status) >= 0) { setApp(null); return apiStart(stepIndex).then(function () { if (stepIndex > 0) return saveNow(stepIndex); }).catch(function () {}); }
+      });
+  }
+  // Final step. Resolves with "invited", "existing_client", "invite_failed" or null when the API failed.
+  function apiSubmit() { return enqueue(submitNow); }
+  function submitNow() {
+    var i = route().length - 1;
+    var body = { contact: contactPayload(), answers: answersPayload(), progress: progress(i) };
+    var a = getApp();
+    var go = function (app) {
+      return apiCall("/" + app.id + "/submit", { method: "POST", token: app.token, body: body })
+        .then(function (r) { setApp({ id: app.id, token: app.token, submitted: true }); return r.status; });
+    };
+    var first = a && !a.submitted ? go(a).catch(function (e) {
+      if ([401, 404].indexOf(e.status) >= 0) { setApp(null); return apiStart(i).then(go); }
+      throw e;
+    }) : apiStart(i).then(go);
+    return first.catch(function () { return null; });
+  }
+  function apiResend() {
+    var a = getApp();
+    if (!a) return Promise.reject(new Error("none"));
+    return apiCall("/" + a.id + "/resend-invite", { method: "POST", token: a.token });
+  }
+  // No store and no plan to start one: nothing to set up in the dashboard yet, so no account.
+  function wantsAccount() { return !(st.f.store === "No" && st.f.newStore === "No"); }
+
   function next() {
     clearTimeout(advTimer);
     var e = validate();
@@ -84,15 +184,23 @@
     if (st.step >= r.length - 1) { submit(); return; }
     var nx = st.step + 1;
     sync("In progress: reached step " + (nx + 1) + " of " + r.length + " (" + S[r[nx]].title + ")");
+    apiSave(st.step);
     st.step = nx; st.err = "";
     render(); window.scrollTo(0, 0);
+  }
+  function resend() {
+    st.resend = "sending"; render();
+    apiResend().then(function () { st.resend = "Invite sent again. Check your inbox."; })
+      .catch(function () { st.resend = "Couldn't send it again just yet. Please wait a few minutes and try again."; })
+      .then(function () { render(); });
   }
   function back() { clearTimeout(advTimer); st.step = Math.max(0, st.step - 1); st.err = ""; render(); window.scrollTo(0, 0); }
   function submit() {
     st.busy = true; render();
-    sync("Submitted").then(function () {
+    var account = wantsAccount() ? apiSubmit() : apiSave(st.step).then(function () { return null; });
+    Promise.all([sync("Submitted"), account]).then(function (res) {
       try { localStorage.removeItem(KEY + "-id"); } catch (e) {}
-      leadId = null; st.sent = true; st.busy = false;
+      leadId = null; st.sent = true; st.busy = false; st.status = res[1] || null;
       render(); window.scrollTo(0, 0);
       try { history.replaceState(null, "", "#thank-you"); } catch (e) {}
     });
@@ -122,6 +230,30 @@
     root.textContent = "";
     if (st.sent) {
       if (bar) bar.style.width = "100%";
+      var email = st.f.email.trim();
+      if (st.status === "invited") {
+        root.appendChild(el("div", { class: "done" }, [
+          el("div", { class: "ok", "aria-hidden": "true", text: "✓" }),
+          el("div", { class: "step-label", text: "Application received" }),
+          el("h1", { text: "Check your inbox, " + st.f.first.trim() + "." }),
+          el("p", {}, [document.createTextNode("We sent an invite to "), el("strong", { text: email }), document.createTextNode(". Click the link inside to set your password and open your Arcline dashboard. Your setup checklist is waiting there.")]),
+          el("p", { text: "Don't see it? Check your spam folder." }),
+          el("button", { type: "button", class: "btn ghost", disabled: st.resend === "sending", onclick: resend, text: st.resend === "sending" ? "Sending…" : "Send the invite again" }),
+          st.resend && st.resend !== "sending" ? el("p", { class: "note", role: "status", text: st.resend }) : null,
+          el("p", { class: "note" }, [document.createTextNode("Already set your password? "), el("a", { class: "link", href: APP_URL + "/auth", text: "Log in to your dashboard" })])
+        ]));
+        return;
+      }
+      if (st.status === "existing_client") {
+        root.appendChild(el("div", { class: "done" }, [
+          el("div", { class: "ok", "aria-hidden": "true", text: "✓" }),
+          el("div", { class: "step-label", text: "Welcome back" }),
+          el("h1", { text: "You already have an account." }),
+          el("p", {}, [el("strong", { text: email }), document.createTextNode(" is already an Arcline client. Log in to go to your dashboard.")]),
+          el("a", { class: "btn", href: APP_URL + "/auth", text: "Log in" })
+        ]));
+        return;
+      }
       root.appendChild(el("div", { class: "done" }, [
         el("div", { class: "ok", "aria-hidden": "true", text: "✓" }),
         el("div", { class: "step-label", text: "Application received" }),
@@ -195,5 +327,6 @@
   root.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && e.target.tagName === "INPUT") { e.preventDefault(); next(); }
   });
+  captureSource();
   render(true);
 })();
